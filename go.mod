@@ -1,3 +1,3 @@
-module github.com/shurcooL/github_flavored_markdown
+module github.com/ssig33/github_flavored_markdown
 
 require github.com/russross/blackfriday v1.5.2
