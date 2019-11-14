@@ -18,7 +18,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
 	"github.com/shurcooL/highlight_diff"
 	"github.com/shurcooL/highlight_go"
@@ -34,9 +33,7 @@ import (
 func Markdown(text []byte) []byte {
 	const htmlFlags = 0
 	renderer := &renderer{Html: blackfriday.HtmlRenderer(htmlFlags, "", "").(*blackfriday.Html)}
-	unsanitized := blackfriday.Markdown(text, renderer, extensions)
-	sanitized := policy.SanitizeBytes(unsanitized)
-	return sanitized
+	return blackfriday.Markdown(text, renderer, extensions)
 }
 
 // Heading returns a heading HTML node with title text.
@@ -75,19 +72,6 @@ const extensions = blackfriday.EXTENSION_NO_INTRA_EMPHASIS |
 	blackfriday.EXTENSION_STRIKETHROUGH |
 	blackfriday.EXTENSION_SPACE_HEADERS |
 	blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
-
-// policy for GitHub Flavored Markdown-like sanitization.
-var policy = func() *bluemonday.Policy {
-	p := bluemonday.UGCPolicy()
-	p.AllowAttrs("class").Matching(bluemonday.SpaceSeparatedTokens).OnElements("div", "span")
-	p.AllowAttrs("class", "name").Matching(bluemonday.SpaceSeparatedTokens).OnElements("a")
-	p.AllowAttrs("rel").Matching(regexp.MustCompile(`^nofollow$`)).OnElements("a")
-	p.AllowAttrs("aria-hidden").Matching(regexp.MustCompile(`^true$`)).OnElements("a")
-	p.AllowAttrs("type").Matching(regexp.MustCompile(`^checkbox$`)).OnElements("input")
-	p.AllowAttrs("checked", "disabled").Matching(regexp.MustCompile(`^$`)).OnElements("input")
-	p.AllowDataURIImages()
-	return p
-}()
 
 type renderer struct {
 	*blackfriday.Html
